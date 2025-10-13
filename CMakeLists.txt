@@ -9,7 +9,7 @@ include(FetchContent)
 FetchContent_Declare(
   juce
   GIT_REPOSITORY https://github.com/juce-framework/JUCE.git
-  GIT_TAG 7.0.12 # Known stable as of 2025-10; adjust if needed
+  GIT_TAG master # Use latest JUCE for macOS 15 (Sequoia) fixes
 )
 FetchContent_MakeAvailable(juce)
 

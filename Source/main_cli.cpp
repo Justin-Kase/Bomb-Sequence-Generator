@@ -1,8 +1,9 @@
-#include <JuceHeader.h>
+// Minimal JUCE includes for CLI
+#include <juce_core/juce_core.h>
+#include <juce_audio_basics/juce_audio_basics.h>
 #include "SequenceGenerator.h"
 
 int main(int argc, char** argv){
-    juce::ConsoleApplication app(argc, argv);
 
     int steps = 16;
     int bars = 2;
