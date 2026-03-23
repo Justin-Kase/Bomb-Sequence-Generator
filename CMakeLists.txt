@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.21)
-project(MidiSequenceGenerator VERSION 0.1.1)
+project(IllbombSeqGenerator VERSION 0.1.1)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -31,16 +31,16 @@ if (APPLE AND PLUGIN_NOTARIZE)
   # Create a helper target to notarize and staple the built VST3 bundle
   add_custom_target(notarize_vst3
     COMMAND ${CMAKE_COMMAND} -E echo "Signing with Developer ID: ${CODE_SIGN_IDENTITY}"
-    COMMAND codesign --force --deep --options runtime -s "${CODE_SIGN_IDENTITY}" "$<TARGET_FILE_DIR:MidiSequenceGenerator_VST3>/../.."
+    COMMAND codesign --force --deep --options runtime -s "${CODE_SIGN_IDENTITY}" "$<TARGET_FILE_DIR:IllbombSeqGenerator_VST3>/../.."
     COMMAND ${CMAKE_COMMAND} -E echo "Preparing VST3 for notarization"
     COMMAND /usr/bin/ditto -c -k --keepParent
-            "$<TARGET_FILE_DIR:MidiSequenceGenerator_VST3>/../.."
-            "${CMAKE_BINARY_DIR}/MidiSequenceGenerator.vst3.zip"
+            "$<TARGET_FILE_DIR:IllbombSeqGenerator_VST3>/../.."
+            "${CMAKE_BINARY_DIR}/IllbombSeqGenerator.vst3.zip"
     COMMAND ${CMAKE_COMMAND} -E echo "Submitting to Apple notarization service (notarytool)"
-    COMMAND xcrun notarytool submit "${CMAKE_BINARY_DIR}/MidiSequenceGenerator.vst3.zip" --keychain-profile "${NOTARY_PROFILE}" --wait
+    COMMAND xcrun notarytool submit "${CMAKE_BINARY_DIR}/IllbombSeqGenerator.vst3.zip" --keychain-profile "${NOTARY_PROFILE}" --wait
     COMMAND ${CMAKE_COMMAND} -E echo "Stapling notarization ticket"
-    COMMAND xcrun stapler staple "$<TARGET_FILE_DIR:MidiSequenceGenerator_VST3>/../.."
-    DEPENDS MidiSequenceGenerator_VST3
+    COMMAND xcrun stapler staple "$<TARGET_FILE_DIR:IllbombSeqGenerator_VST3>/../.."
+    DEPENDS IllbombSeqGenerator_VST3
     COMMENT "Notarizing VST3 bundle"
     VERBATIM
   )
@@ -49,18 +49,18 @@ endif()
 if (APPLE)
   # Post-install hook: sanitize installed moduleinfo.json and ad-hoc sign the bundle
   install(CODE [[
-    set(bundle "${CMAKE_INSTALL_PREFIX}/Library/Audio/Plug-Ins/VST3/MIDI Sequence Generator.vst3")
+    set(bundle "${CMAKE_INSTALL_PREFIX}/Library/Audio/Plug-Ins/VST3/Illbomb Sequence Generator.vst3")
     set(json   "${bundle}/Contents/Resources/moduleinfo.json")
     if (EXISTS "${json}")
       execute_process(COMMAND /usr/bin/python3 "${CMAKE_SOURCE_DIR}/scripts/fix_moduleinfo_json.py" "${json}" RESULT_VARIABLE rv)
       execute_process(COMMAND codesign --force --deep --options runtime -s - "${bundle}")
     endif()
-  ]] COMPONENT MidiSequenceGenerator_VST3)
+  ]] COMPONENT IllbombSeqGenerator_VST3)
 
   # Convenience target: fix and re-sign the installed VST3 in the user's plug-ins folder
   add_custom_target(fix_installed_vst3
-    COMMAND /usr/bin/python3 "${CMAKE_SOURCE_DIR}/scripts/fix_moduleinfo_json.py" "$ENV{HOME}/Library/Audio/Plug-Ins/VST3/MIDI Sequence Generator.vst3/Contents/Resources/moduleinfo.json"
-    COMMAND codesign --force --deep --options runtime -s - "$ENV{HOME}/Library/Audio/Plug-Ins/VST3/MIDI Sequence Generator.vst3"
+    COMMAND /usr/bin/python3 "${CMAKE_SOURCE_DIR}/scripts/fix_moduleinfo_json.py" "$ENV{HOME}/Library/Audio/Plug-Ins/VST3/Illbomb Sequence Generator.vst3/Contents/Resources/moduleinfo.json"
+    COMMAND codesign --force --deep --options runtime -s - "$ENV{HOME}/Library/Audio/Plug-Ins/VST3/Illbomb Sequence Generator.vst3"
     COMMENT "Sanitizing installed moduleinfo.json and re-signing VST3 bundle"
     VERBATIM
   )
