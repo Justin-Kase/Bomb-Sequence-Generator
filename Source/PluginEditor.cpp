@@ -192,6 +192,12 @@ MidiSequenceGeneratorAudioProcessorEditor::MidiSequenceGeneratorAudioProcessorEd
     // Step grid
     addAndMakeVisible(stepGrid_);
 
+    // Load logo from binary resources
+    int logoDataSize = 0;
+    auto logoData = BinaryData::getNamedResource("logo_png", logoDataSize);
+    if (logoData != nullptr && logoDataSize > 0)
+        logoImage_ = juce::ImageFileFormat::loadFrom(logoData, logoDataSize);
+
     startTimerHz(20);
 }
 
@@ -210,17 +216,35 @@ void MidiSequenceGeneratorAudioProcessorEditor::paint(juce::Graphics& g) {
     // Background
     g.fillAll(Col::bg);
 
+    const int headerH = 36;
+    auto headerBounds = getLocalBounds().removeFromTop(headerH);
+
+    // Logo (top-right, matching BombSeq placement)
+    if (logoImage_.isValid()) {
+        const int logoSize = 26;
+        const int logoX    = getWidth() - logoSize - 12;
+        const int logoY    = (headerH - logoSize) / 2;
+
+        // Subtle white circle backing
+        g.setColour(juce::Colours::white.withAlpha(0.08f));
+        g.fillEllipse((float)(logoX - 2), (float)(logoY - 2),
+                      (float)(logoSize + 4), (float)(logoSize + 4));
+
+        g.drawImage(logoImage_, logoX, logoY, logoSize, logoSize,
+                    0, 0, logoImage_.getWidth(), logoImage_.getHeight());
+    }
+
     // Title
     g.setColour(Col::accent);
     g.setFont(juce::Font(16.f, juce::Font::bold));
-    g.drawText("MIDI SEQ GEN", getLocalBounds().removeFromTop(36).withTrimmedLeft(16),
+    g.drawText("MIDI SEQ GEN", headerBounds.withTrimmedLeft(16),
                juce::Justification::centredLeft);
 
-    // Version
+    // Version (just left of the logo)
     g.setColour(Col::textDim);
     g.setFont(juce::Font(10.f));
-    g.drawText("v0.2.0", getLocalBounds().removeFromTop(36),
-               juce::Justification::centredRight);
+    auto versionBounds = getLocalBounds().removeFromTop(headerH).withTrimmedRight(logoImage_.isValid() ? 50 : 8);
+    g.drawText("v0.2.0", versionBounds, juce::Justification::centredRight);
 }
 
 void MidiSequenceGeneratorAudioProcessorEditor::resized() {

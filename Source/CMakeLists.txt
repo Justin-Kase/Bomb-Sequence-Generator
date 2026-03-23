@@ -1,3 +1,9 @@
+# Binary resources (logo)
+juce_add_binary_data(MidiSeqBinaryData
+    SOURCES
+        ../Resources/logo.png
+)
+
 juce_add_plugin(MidiSequenceGenerator
     COMPANY_NAME "OpenSource"
     BUNDLE_ID com.opensource.midisequencegenerator
@@ -35,6 +41,7 @@ target_compile_definitions(MidiSequenceGenerator
 
 target_link_libraries(MidiSequenceGenerator
     PRIVATE
+        MidiSeqBinaryData
         juce::juce_audio_utils
         juce::juce_audio_processors
         juce::juce_dsp

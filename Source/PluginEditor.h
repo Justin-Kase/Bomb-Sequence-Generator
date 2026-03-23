@@ -1,6 +1,7 @@
 #pragma once
 #include <juce_gui_basics/juce_gui_basics.h>
 #include <juce_audio_processors/juce_audio_processors.h>
+#include <BinaryData.h>
 #include "SequenceGenerator.h"
 
 class MidiSequenceGeneratorAudioProcessor;
@@ -56,6 +57,9 @@ private:
 
     MidiSequenceGeneratorAudioProcessor& proc_;
     SeqLookAndFeel laf_;
+
+    // Logo
+    juce::Image logoImage_;
 
     // Step grid
     StepGrid stepGrid_;
