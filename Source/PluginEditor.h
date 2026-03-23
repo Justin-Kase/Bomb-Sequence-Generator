@@ -3,6 +3,7 @@
 #include <juce_audio_processors/juce_audio_processors.h>
 #include <BinaryData.h>
 #include "SequenceGenerator.h"
+#include "MidiExporter.h"
 
 class BombSeqGeneratorAudioProcessor;
 
@@ -54,6 +55,7 @@ public:
 
 private:
     void timerCallback() override;
+    void exportMidi();
 
     BombSeqGeneratorAudioProcessor& proc_;
     SeqLookAndFeel laf_;
@@ -75,6 +77,11 @@ private:
     // Scale selector
     juce::Label    scaleLabel_;
     juce::ComboBox scaleBox_;
+
+    // Export button
+    juce::TextButton exportBtn_ { "⬇  Export MIDI" };
+    std::unique_ptr<juce::FileChooser> fileChooser_;
+    juce::Label exportStatus_;
 
     // APVTS attachments
     using SliderAtt = juce::AudioProcessorValueTreeState::SliderAttachment;

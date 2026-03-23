@@ -27,6 +27,7 @@ set(PLUGIN_SOURCES
     PluginProcessor.cpp
     SequenceGenerator.h
     SequenceGenerator.cpp
+    MidiExporter.h
 )
 
 target_sources(BombSeqGenerator PRIVATE ${PLUGIN_SOURCES})

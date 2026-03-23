@@ -158,7 +158,7 @@ BombSeqGeneratorAudioProcessorEditor::BombSeqGeneratorAudioProcessorEditor(
 {
     setLookAndFeel(&laf_);
     setResizable(true, true);
-    setSize(580, 310);
+    setSize(580, 345);
 
     auto& params = proc_.parameters();
 
@@ -192,6 +192,19 @@ BombSeqGeneratorAudioProcessorEditor::BombSeqGeneratorAudioProcessorEditor(
     // Step grid
     addAndMakeVisible(stepGrid_);
 
+    // Export button
+    exportBtn_.setColour(juce::TextButton::buttonColourId,   Col::panel);
+    exportBtn_.setColour(juce::TextButton::buttonOnColourId,  Col::active.withAlpha(0.3f));
+    exportBtn_.setColour(juce::TextButton::textColourOffId,   Col::active);
+    exportBtn_.setColour(juce::TextButton::textColourOnId,    Col::active);
+    exportBtn_.onClick = [this] { exportMidi(); };
+    addAndMakeVisible(exportBtn_);
+
+    exportStatus_.setFont(juce::Font(10.f));
+    exportStatus_.setColour(juce::Label::textColourId, Col::textDim);
+    exportStatus_.setJustificationType(juce::Justification::centredRight);
+    addAndMakeVisible(exportStatus_);
+
     // Load logo from binary resources
     int logoDataSize = 0;
     auto logoData = BinaryData::getNamedResource("logo_png", logoDataSize);
@@ -204,6 +217,50 @@ BombSeqGeneratorAudioProcessorEditor::BombSeqGeneratorAudioProcessorEditor(
 BombSeqGeneratorAudioProcessorEditor::~BombSeqGeneratorAudioProcessorEditor() {
     setLookAndFeel(nullptr);
     stopTimer();
+}
+
+void BombSeqGeneratorAudioProcessorEditor::exportMidi() {
+    auto& params   = proc_.parameters();
+    const int   steps   = (int)params.getRawParameterValue("steps")->load();
+    const float swing   = params.getRawParameterValue("swing")->load();
+    const float density = params.getRawParameterValue("density")->load();
+    const int   root    = (int)params.getRawParameterValue("root")->load();
+    const int   octs    = (int)params.getRawParameterValue("octaves")->load();
+    const int   scaleIdx= (int)params.getRawParameterValue("scale")->load();
+    const int   seed    = (int)params.getRawParameterValue("seed")->load();
+
+    const auto& scaleInfo = getScale(scaleIdx);
+
+    juce::String defaultName = juce::String("bomb_seq_")
+        + juce::String(scaleInfo.name).replace(". ", "_").replace(" ", "_").toLowerCase()
+        + "_seed" + juce::String(seed) + ".mid";
+
+    fileChooser_ = std::make_unique<juce::FileChooser>(
+        "Export MIDI clip",
+        juce::File::getSpecialLocation(juce::File::userDesktopDirectory)
+            .getChildFile(defaultName),
+        "*.mid");
+
+    fileChooser_->launchAsync(
+        juce::FileBrowserComponent::saveMode | juce::FileBrowserComponent::canSelectFiles,
+        [this, steps, swing, density, root, octs, scaleInfo, seed](const juce::FileChooser& fc)
+        {
+            auto result = fc.getResult();
+            if (result == juce::File{}) return;
+
+            SequenceGenerator gen;
+            gen.configure(480, steps, root, scaleInfo.semitones, swing, density, octs, seed);
+            auto events = gen.generateBars(4);
+
+            bool ok = MidiExporter::writeMidi(result.getFullPathName().toStdString(), events, 480);
+            exportStatus_.setText(ok ? juce::String(juce::CharPointer_UTF8("\xe2\x9c\x93")) + " " + result.getFileName()
+                                     : juce::String(juce::CharPointer_UTF8("\xe2\x9c\x97")) + " Export failed",
+                                  juce::dontSendNotification);
+
+            juce::Timer::callAfterDelay(4000, [this] {
+                exportStatus_.setText("", juce::dontSendNotification);
+            });
+        });
 }
 
 void BombSeqGeneratorAudioProcessorEditor::timerCallback() {
@@ -272,4 +329,10 @@ void BombSeqGeneratorAudioProcessorEditor::resized() {
     auto scaleCol = knobRow;
     scaleLabel_.setBounds(scaleCol.removeFromBottom(16));
     scaleBox_  .setBounds(scaleCol.reduced(4));
+
+    // Export row
+    area.removeFromTop(8);
+    auto exportRow = area.removeFromTop(30);
+    exportBtn_.setBounds(exportRow.removeFromLeft(160));
+    exportStatus_.setBounds(exportRow.withTrimmedLeft(8));
 }
